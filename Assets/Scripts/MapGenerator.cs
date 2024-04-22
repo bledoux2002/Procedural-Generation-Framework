@@ -84,7 +84,7 @@ public class MapGenerator : MonoBehaviour
     //generate tiles spiral-form
     void SpiralGen(Vector2Int input)
     {
-        
+        /*
         //https://stackoverflow.com/questions/3706219/algorithm-for-iterating-over-an-outward-spiral-on-a-discrete-2d-grid-from-the-or
 
         //current position
@@ -172,96 +172,183 @@ public class MapGenerator : MonoBehaviour
                     }
                 }*/
 
-                /*try
-                    {
-                        TileBase changeTile = selectTile(x + input.x, y + input.y);
-                        _map.SetTile(new Vector3Int(x + input.x, y + input.y, 0), changeTile); //SHOLD PROBABLY ALLOW FOR Z MANIPULATION
-                        int reqTilesNum = _mapManager._dataFromTiles[changeTile].reqTiles.Count();
-                        if (reqTilesNum > 0)
-                        {
-                            for (int j = 0; j < reqTilesNum; j++)
-                            {
-                                int index = Convert.ToInt32(Math.Floor(Random.Range(0.0f, (float)_mapManager._dataFromTiles[changeTile].reqTiles[j].tiles.Count())));
-                                _map.SetTile(new Vector3Int(x + input.x + _mapManager._dataFromTiles[changeTile].reqTilesCoords[j].x, y + input.y + _mapManager._dataFromTiles[changeTile].reqTilesCoords[j].y, 0), _mapManager._dataFromTiles[changeTile].reqTiles[j].tiles[index]);
-                            }
-                        }
-                    }
-                    catch
-                    {
-                        Debug.Log("Impossible combination at " + new Vector2Int(x, y));
-                        genSuccess = false;
-                        //break; //freezes game
-
-                    }*/
-
-                //Continue thru spiral
-                x += dx;
-                y += dy;
-                segment_passed++;
-                //Debug.Log(x + ", " + y);
-                if (segment_passed == segment_length)
+        /*try
+            {
+                TileBase changeTile = selectTile(x + input.x, y + input.y);
+                _map.SetTile(new Vector3Int(x + input.x, y + input.y, 0), changeTile); //SHOLD PROBABLY ALLOW FOR Z MANIPULATION
+                int reqTilesNum = _mapManager._dataFromTiles[changeTile].reqTiles.Count();
+                if (reqTilesNum > 0)
                 {
-                    segment_passed = 0;
-                    int buffer = dx;
-                    dx = -dy;
-                    dy = buffer;
-
-                    if (dy == 0)
+                    for (int j = 0; j < reqTilesNum; j++)
                     {
-                        segment_length++;
+                        int index = Convert.ToInt32(Math.Floor(Random.Range(0.0f, (float)_mapManager._dataFromTiles[changeTile].reqTiles[j].tiles.Count())));
+                        _map.SetTile(new Vector3Int(x + input.x + _mapManager._dataFromTiles[changeTile].reqTilesCoords[j].x, y + input.y + _mapManager._dataFromTiles[changeTile].reqTilesCoords[j].y, 0), _mapManager._dataFromTiles[changeTile].reqTiles[j].tiles[index]);
                     }
                 }
             }
-        }
-        
+            catch
+            {
+                Debug.Log("Impossible combination at " + new Vector2Int(x, y));
+                genSuccess = false;
+                //break; //freezes game
 
-        /*
+            }//
+
+        //Continue thru spiral
+        x += dx;
+        y += dy;
+        segment_passed++;
+        //Debug.Log(x + ", " + y);
+        if (segment_passed == segment_length)
+        {
+            segment_passed = 0;
+            int buffer = dx;
+            dx = -dy;
+            dy = buffer;
+
+            if (dy == 0)
+            {
+                segment_length++;
+            }
+        }
+    }
+}
+*/
         for (int y = _radius.y; y >= -_radius.y; y--)
         {
             for (int x = -_radius.x; x <= _radius.x; x++)
             {
-                //from top left to bottom right, generate any missing tiles (currently at (0, 0), focused on camera
-                if (_map.GetTile(new Vector3Int(x + input.x, y + input.y, 0)) == null)
+                if (_map.GetTile(new Vector3Int(x + input.x, y + input.y, 0)) == null) //if empty tile
                 {
-                    try
+                    TileBase[,] grid = new TileBase[7, 7]; //create temp grid for simulation around empty tile
+                    for (int gx = 0; gx < 7; gx++)
                     {
-                        TileBase changeTile = selectTile(x + input.x, y + input.y);
-                        _map.SetTile(new Vector3Int(x + input.x, y + input.y, 0), changeTile); //SHOLD PROBABLY ALLOW FOR Z MANIPULATION
-                        int reqTilesNum = _mapManager._dataFromTiles[changeTile].reqTiles.Count();
-                        if (reqTilesNum > 0)
+                        for (int gy = 6; gy > -1; gy--)
                         {
-                            for (int i = 0; i < reqTilesNum; i++)
+                            //Debug.Log(gx + ", " + gy);
+                            grid[gx, gy] = _map.GetTile(new Vector3Int(x + input.x + gx - 3, y + input.y + gy - 3, 0)); //fill temp grid with existing tiles
+                        }
+                    }
+
+                    int breaker = 0;
+
+                BeforeLoop:
+                    //try until succeeded
+                    //for each tile in 5x5 grid to be simulated (top left to bottom right)
+                    for (int gx = 1; gx < 6; gx++)
+                    {
+                        for (int gy = 5; gy > 0; gy--)
+                        {
+                            //Debug.Log(gx + ", " + gy);
+                            //create mini grid of 3x3 section to input into selectTile()
+                            TileBase[,] tempGrid = new TileBase[3, 3];
+                            for (int tx = 0; tx < 3; tx++)
                             {
-                                int index = Convert.ToInt32(Math.Floor(Random.Range(0.0f, (float)_mapManager._dataFromTiles[changeTile].reqTiles[i].tiles.Count())));
-                                _map.SetTile(new Vector3Int(x + input.x + _mapManager._dataFromTiles[changeTile].reqTilesCoords[i].x, y + input.y + _mapManager._dataFromTiles[changeTile].reqTilesCoords[i].y, 0), _mapManager._dataFromTiles[changeTile].reqTiles[i].tiles[index]);
+                                for (int ty = 2; ty > -1; ty--)
+                                {
+                                    //Debug.Log(tx + ", " + ty);
+                                    tempGrid[tx, ty] = grid[tx + gx - 1, ty + gy - 1];
+                                }
+                            }
+                            //EVERYTHING UP TO HERE SHOULD WORK, GOING TO REWORK selectTile() NEXT
+                            TileBase tempTile = selectTile(tempGrid);
+                            if (tempTile != null)
+                            {
+                                grid[gx, gy] = tempTile;
+                            }
+                            else
+                            {
+                                breaker++;
+                                if (breaker < 100)
+                                {
+                                    goto BeforeLoop;
+                                }
+                                else
+                                {
+                                    Debug.Log("Possible infinite loop");
+                                    break;
+                                }
                             }
                         }
+                    }
 
-                        //remove fog
-                        if (_fog.GetTile(new Vector3Int(x + input.x - 1, y + input.y, 0)) != null)
-                        {
-                            _fog.SetTile(new Vector3Int(x + input.x - 1, y + input.y, 0), null);
-                        }
-                        if (_fog.GetTile(new Vector3Int(x + input.x, y + input.y, 0)) != null)
-                        {
-                            _fog.SetTile(new Vector3Int(x + input.x, y + input.y, 0), null);
-                        }
-                        if (_fog.GetTile(new Vector3Int(x + input.x - 1, y + input.y - 1, 0)) != null)
-                        {
-                            _fog.SetTile(new Vector3Int(x + input.x - 1, y + input.y - 1, 0), null);
-                        }
-                        if (_fog.GetTile(new Vector3Int(x + input.x, y + input.y - 1, 0)) != null)
-                        {
-                            _fog.SetTile(new Vector3Int(x + input.x, y + input.y - 1, 0), null);
-                        }
-                    }
-                    catch
+                    TileBase changeTile = grid[3, 3];
+                    _map.SetTile(new Vector3Int(x + input.x, y + input.y, 0), changeTile); //SHOULD PROBABLY ALLOW FOR Z MANIPULATION
+                    /*int reqTilesNum = _mapManager.__dataFromTiles[changeTile].reqTiles.Count();
+                    if (reqTilesNum > 0)
                     {
-                        Debug.Log("Impossible combination at " + new Vector2Int(x, y));
-                    }
+                        for (int j = 0; j < reqTilesNum; j++)
+                        {
+                            int index = Convert.ToInt32(Math.Floor(Random.Range(0.0f, (float)_mapManager.__dataFromTiles[changeTile].reqTiles[j].tiles.Count())));
+                            _map.SetTile(new Vector3Int(x + input.x + _mapManager.__dataFromTiles[changeTile].reqTilesCoords[j].x, y + input.y + _mapManager.__dataFromTiles[changeTile].reqTilesCoords[j].y, 0), _mapManager._dataFromTiles[changeTile].reqTiles[j].tiles[index]);
+                        }
+                    }*/
+
+                    /*try
+                        {
+                            TileBase changeTile = selectTile(x + input.x, y + input.y);
+                            _map.SetTile(new Vector3Int(x + input.x, y + input.y, 0), changeTile); //SHOLD PROBABLY ALLOW FOR Z MANIPULATION
+                            int reqTilesNum = _mapManager._dataFromTiles[changeTile].reqTiles.Count();
+                            if (reqTilesNum > 0)
+                            {
+                                for (int j = 0; j < reqTilesNum; j++)
+                                {
+                                    int index = Convert.ToInt32(Math.Floor(Random.Range(0.0f, (float)_mapManager._dataFromTiles[changeTile].reqTiles[j].tiles.Count())));
+                                    _map.SetTile(new Vector3Int(x + input.x + _mapManager._dataFromTiles[changeTile].reqTilesCoords[j].x, y + input.y + _mapManager._dataFromTiles[changeTile].reqTilesCoords[j].y, 0), _mapManager._dataFromTiles[changeTile].reqTiles[j].tiles[index]);
+                                }
+                            }
+                        }
+                        catch
+                        {
+                            Debug.Log("Impossible combination at " + new Vector2Int(x, y));
+                            genSuccess = false;
+                            //break; //freezes game
+
+                        }*/
+                    /*
+                    //from top left to bottom right, generate any missing tiles (currently at (0, 0), focused on camera
+                    if (_map.GetTile(new Vector3Int(x + input.x, y + input.y, 0)) == null)
+                    {
+                        try
+                        {
+                            TileBase changeTile = selectTile(x + input.x, y + input.y);
+                            _map.SetTile(new Vector3Int(x + input.x, y + input.y, 0), changeTile); //SHOLD PROBABLY ALLOW FOR Z MANIPULATION
+                            int reqTilesNum = _mapManager._dataFromTiles[changeTile].reqTiles.Count();
+                            if (reqTilesNum > 0)
+                            {
+                                for (int i = 0; i < reqTilesNum; i++)
+                                {
+                                    int index = Convert.ToInt32(Math.Floor(Random.Range(0.0f, (float)_mapManager._dataFromTiles[changeTile].reqTiles[i].tiles.Count())));
+                                    _map.SetTile(new Vector3Int(x + input.x + _mapManager._dataFromTiles[changeTile].reqTilesCoords[i].x, y + input.y + _mapManager._dataFromTiles[changeTile].reqTilesCoords[i].y, 0), _mapManager._dataFromTiles[changeTile].reqTiles[i].tiles[index]);
+                                }
+                            }
+
+                            //remove fog
+                            if (_fog.GetTile(new Vector3Int(x + input.x - 1, y + input.y, 0)) != null)
+                            {
+                                _fog.SetTile(new Vector3Int(x + input.x - 1, y + input.y, 0), null);
+                            }
+                            if (_fog.GetTile(new Vector3Int(x + input.x, y + input.y, 0)) != null)
+                            {
+                                _fog.SetTile(new Vector3Int(x + input.x, y + input.y, 0), null);
+                            }
+                            if (_fog.GetTile(new Vector3Int(x + input.x - 1, y + input.y - 1, 0)) != null)
+                            {
+                                _fog.SetTile(new Vector3Int(x + input.x - 1, y + input.y - 1, 0), null);
+                            }
+                            if (_fog.GetTile(new Vector3Int(x + input.x, y + input.y - 1, 0)) != null)
+                            {
+                                _fog.SetTile(new Vector3Int(x + input.x, y + input.y - 1, 0), null);
+                            }
+                        }
+                        catch
+                        {
+                            Debug.Log("Impossible combination at " + new Vector2Int(x, y));
+                        }
+                    }*/
                 }
             }
-        }*/
+        }
     }
 
     //Used to round out the values inputted (prob a built-in way to do this but it makes me feel smart)
@@ -578,7 +665,7 @@ public class MapGenerator : MonoBehaviour
                 List<TileBase> tempList = compatibleList(grid[x, y], cardinals[i]);
                 if (tempList != null)
                 {
-                    tileLists.Add(compatibleList(grid[x, y], cardinals[i]));
+                    tileLists.Add(tempList);
                 }
             }
         }
