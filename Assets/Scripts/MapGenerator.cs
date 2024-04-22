@@ -220,19 +220,20 @@ public class MapGenerator : MonoBehaviour
             {
                 if (_map.GetTile(new Vector3Int(x + input.x, y + input.y, 0)) == null) //if empty tile
                 {
-                    TileBase[,] grid = new TileBase[7, 7]; //create temp grid for simulation around empty tile
+                    TileBase[,] gridMap = new TileBase[7, 7]; //create temp grid for simulation around empty tile
                     for (int gx = 0; gx < 7; gx++)
                     {
                         for (int gy = 6; gy > -1; gy--)
                         {
                             //Debug.Log(gx + ", " + gy);
-                            grid[gx, gy] = _map.GetTile(new Vector3Int(x + input.x + gx - 3, y + input.y + gy - 3, 0)); //fill temp grid with existing tiles
+                            gridMap[gx, gy] = _map.GetTile(new Vector3Int(x + input.x + gx - 3, y + input.y + gy - 3, 0)); //fill temp grid with existing tiles
                         }
                     }
 
                     int breaker = 0;
 
                 BeforeLoop:
+                    TileBase[,] gridSim = gridMap;
                     //try until succeeded
                     //for each tile in 5x5 grid to be simulated (top left to bottom right)
                     for (int gx = 1; gx < 6; gx++)
@@ -247,14 +248,14 @@ public class MapGenerator : MonoBehaviour
                                 for (int ty = 2; ty > -1; ty--)
                                 {
                                     //Debug.Log(tx + ", " + ty);
-                                    tempGrid[tx, ty] = grid[tx + gx - 1, ty + gy - 1];
+                                    tempGrid[tx, ty] = gridSim[tx + gx - 1, ty + gy - 1];
                                 }
                             }
                             //EVERYTHING UP TO HERE SHOULD WORK, GOING TO REWORK selectTile() NEXT
                             TileBase tempTile = selectTile(tempGrid);
                             if (tempTile != null)
                             {
-                                grid[gx, gy] = tempTile;
+                                gridSim[gx, gy] = tempTile;
                             }
                             else
                             {
@@ -272,7 +273,7 @@ public class MapGenerator : MonoBehaviour
                         }
                     }
 
-                    TileBase changeTile = grid[3, 3];
+                    TileBase changeTile = gridSim[3, 3];
                     _map.SetTile(new Vector3Int(x + input.x, y + input.y, 0), changeTile); //SHOULD PROBABLY ALLOW FOR Z MANIPULATION
                     /*int reqTilesNum = _mapManager.__dataFromTiles[changeTile].reqTiles.Count();
                     if (reqTilesNum > 0)
