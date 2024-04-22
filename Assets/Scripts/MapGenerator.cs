@@ -229,11 +229,11 @@ public class MapGenerator : MonoBehaviour
                             gridMap[gx, gy] = _map.GetTile(new Vector3Int(x + input.x + gx - 3, y + input.y + gy - 3, 0)); //fill temp grid with existing tiles
                         }
                     }
-
+                    TileBase[,] gridSim = new TileBase[7, 7];
                     int breaker = 0;
 
                 BeforeLoop:
-                    TileBase[,] gridSim = gridMap;
+                    gridSim = gridMap;
                     //try until succeeded
                     //for each tile in 5x5 grid to be simulated (top left to bottom right)
                     for (int gx = 1; gx < 6; gx++)
@@ -260,7 +260,7 @@ public class MapGenerator : MonoBehaviour
                             else
                             {
                                 breaker++;
-                                if (breaker < 100)
+                                if (breaker < 1000)
                                 {
                                     goto BeforeLoop;
                                 }
@@ -798,8 +798,11 @@ public class MapGenerator : MonoBehaviour
                     tempList.Add(compArray[i].tiles[j]);
                 }
             }
+            return tempList;
+        } else
+        {
+            return null;
         }
-        return tempList;
     }
 
     //gaussian double selection, used instead of randomized tile selection
